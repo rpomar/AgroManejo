@@ -1,0 +1,87 @@
+@startuml telas-b
+skinparam dpi 150
+skinparam defaultFontName Arial
+title Figura 10b — Atividade, agenda e sincronização
+salt
+{
+  {+
+    <b>Atividade · Talhão Norte
+    ==
+    Tipo
+    ^Plantio^
+    Descrição
+    "Soja, 60 kg/ha       "
+    Data prevista | "12/11/2026"
+    Tempo estimado (h) | "6,0"
+    --
+    <b>Situação
+    { (X) Planejada | () Em andamento | () Concluída }
+    --
+    {#
+      . | <b>Previsto | <b>Realizado
+      Mão de obra | 600,00 | "600,00"
+      Insumos | 4.200,00 | "4.350,00"
+      Maquinário | 900,00 | "900,00"
+      <b>Total | <b>5.700,00 | <b>5.850,00
+      Receita | 9.000,00 | "9.000,00"
+    }
+    Data realizada | "  /  /    "
+    --
+    <b>Avaliação <i>(liberada após concluir)
+    { () Positiva | () Negativa }
+    Observações
+    "                     "
+    { [ Excluir ] | . | [   Salvar   ] }
+  } | . | {+
+    <b>Atividades
+    ==
+    { Filtro: | ^Todas as situações^ }
+    --
+    <b>Hoje · 05/11
+    {#
+      Adubação | Talhão Norte | Em andamento
+    }
+    <b>12/11/2026
+    {#
+      Plantio | Talhão Norte | Planejada
+      Roçada | Piquete 3 | Planejada
+    }
+    <b>Sem data
+    {#
+      Amostragem | Piquete 3 | Planejada
+    }
+    <b>Concluídas
+    {#
+      Correção de solo | Talhão Norte | Positiva
+    }
+    --
+    {/ Mapa | <b>Atividades | Mais }
+  } | . | {+
+    <b>Mais › Sincronização
+    ==
+    Último envio: hoje, 14:32
+    --
+    <b>Conflitos (1)
+    { [ Talhão Norte · alterado em outro aparelho ] }
+    <b>Rejeitados (0)
+    <b>Pendentes (2)
+    {#
+      Atividade Plantio | aguardando conexão
+      Unidade Piquete 3 | aguardando conexão
+    }
+    --
+    <b>Conflito · Talhão Norte
+    {#
+      . | <b>Este aparelho | <b>Servidor
+      Nome | Talhão Norte | Talhão N.
+      Área | 24,6 ha | 25,1 ha
+      Vértices | 4 | 5
+    }
+    { [ Manter a minha ] | [ Usar a do servidor ] }
+    --
+    <i>Também em Mais: Pacotes de mapa
+    <i>(região, espaço ocupado) e Conta (sair).
+    {/ Mapa | Atividades | <b>Mais }
+  }
+}
+@enduml

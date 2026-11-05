@@ -15,6 +15,9 @@ Complementa a seção 7.4 da proposta técnica (`entrega-basica/AgroManejo-Entre
 |---|---|---|
 | Unidade de manejo | Dados da unidade **e** todos os seus vértices | Bloco único: o contorno inteiro é aceito ou recusado junto. Os vértices nunca são sincronizados isoladamente. |
 | Atividade | Todos os campos da atividade | Independente da unidade; referencia a unidade pelo identificador. |
+| Propriedade | Dados da propriedade | **Somente recebimento.** Criada pelo servidor com a conta; o aparelho não a envia nesta versão. |
+
+A **exclusão** não é uma operação à parte: é uma alteração que preenche `excluido_em` e segue o mesmo envio, com versão-base e detecção de conflito. Um registro excluído continua no aparelho, oculto, até ser aceito pelo servidor. Ao excluir uma unidade, o aparelho envia só a unidade e apenas oculta as suas atividades: quem as exclui é o servidor, na mesma transação (seção 5), e o recebimento traz essas exclusões de volta. Assim, a exclusão em cascata não gera conflitos com as versões das atividades.
 
 ## 3. Estado de cada registro no aparelho
 
@@ -74,13 +77,15 @@ O aplicativo também envia a sua **versão**.
    - polígono válido, reconstruído a partir dos vértices com as funções do PostGIS;
    - no mínimo 3 vértices;
    - campos obrigatórios presentes;
-   - valores monetários não negativos.
+   - valores monetários, previstos e realizados, não negativos;
+   - avaliação somente em atividade CONCLUIDA, e CONCLUIDA somente com data realizada;
+   - atividade nova ou alterada somente em unidade não excluída.
 4. Comparar a versão-base com a versão atual:
    - registro inexistente e versão-base nula → **inserir** com versão 1;
    - versões iguais → **gravar** e incrementar a versão;
    - versões diferentes → **conflito**: nada é gravado.
-5. Para unidades: recalcular a área com o PostGIS e gravar esse valor, que passa a ser a área oficial.
-6. Registrar a alteração no registro de alterações (seção 6) e o identificador da operação como processado.
+5. Para unidades: recalcular a área com o PostGIS e gravar esse valor, que passa a ser a área oficial. Se a alteração aceita for uma exclusão, excluir na mesma transação as atividades ainda ativas da unidade, incrementando a versão de cada uma.
+6. Registrar a alteração (e, numa exclusão de unidade, cada atividade excluída junto) no registro de alterações (seção 6) e o identificador da operação como processado.
 
 **Resposta por registro:**
 

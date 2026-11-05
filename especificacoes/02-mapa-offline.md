@@ -63,11 +63,17 @@ Exibir, de forma discreta e acessível, por exemplo em um ícone "i":
 - "© colaboradores do OpenStreetMap" (camada vetorial);
 - o texto exigido pela fonte de imagem. Para o EOX cloudless: "EOxCloudless by EOX IT Services GmbH (Contains modified Copernicus Sentinel data [ano])".
 
-## 6. Decisões pendentes
+## 6. Decisões
 
-1. Confirmar a área de atuação inicial (estado ou região) para gerar a camada vetorial.
-2. Para produção: processar o próprio mosaico Sentinel-2 ou contratar imagem comercial de maior resolução com cláusula de uso offline.
-3. Se o Google ou outro provedor comercial for considerado, ler os termos completos antes de qualquer uso offline.
+Tomadas:
+
+1. **Área de atuação inicial: o Rio Grande do Sul inteiro.** A camada vetorial é gerada para o estado, o que evita reprocessar quando surgir uma propriedade fora da região de testes.
+2. **Imagem nesta fase: mosaico Sentinel-2 cloudless da EOX**, com a atribuição da seção 5. O projeto está em fase acadêmica e sem fins comerciais, o que atende à licença CC BY-NC-SA 4.0.
+
+Pendentes, apenas se houver uso comercial:
+
+3. Processar o próprio mosaico Sentinel-2 ou contratar imagem comercial de maior resolução com cláusula de uso offline.
+4. Se o Google ou outro provedor comercial for considerado, ler os termos completos antes de qualquer uso offline.
 
 ## Fontes consultadas
 

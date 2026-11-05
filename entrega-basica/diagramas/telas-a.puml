@@ -1,0 +1,69 @@
+@startuml telas-a
+skinparam dpi 150
+skinparam defaultFontName Arial
+title Figura 10a — Acesso, mapa e desenho da unidade
+salt
+{
+  {+
+    <b>Acesso
+    ==
+    .
+    <b>AgroManejo
+    .
+    E-mail
+    "produtor@email.com   "
+    Senha
+    "********             "
+    .
+    [         Entrar          ]
+    .
+    [ Criar conta ] | [ Esqueci a senha ]
+    .
+    --
+    <i>Criar conta: nome, e-mail e senha;
+    <i>confirmação pelo link enviado ao e-mail.
+    <i>Esqueci a senha: link para nova senha.
+  } | . | {+
+    <b>Mapa
+    ==
+    { [ ✓ Sincronizado ] | . | [ 2 pendentes ] | [ 1 conflito ] }
+    --
+    {#
+      <color:#2E7D32>■</color> Talhão Norte | 24,6 ha | Lavoura
+      <color:#F9A825>■</color> Piquete 3 | 8,1 ha | Pastagem
+      <color:#1B5E20>■</color> Reserva | 12,0 ha | Mata
+    }
+    .
+    <i>(imagem de satélite com as unidades
+    <i> coloridas pelo uso e a posição do GPS)
+    .
+    { [ Minha posição ] | [ Ver propriedade ] | [ + Nova unidade ] }
+    --
+    <b>Painel da unidade: Talhão Norte
+    Lavoura · 24,6 ha · 3 atividades
+    { [ Nova atividade ] | [ Editar contorno ] | [ Excluir ] }
+    --
+    {/ <b>Mapa | Atividades | Mais }
+  } | . | {+
+    <b>Nova unidade
+    ==
+    Nome
+    "Talhão Norte         "
+    Uso
+    ^Lavoura^
+    --
+    <i>(contorno parcial desenhado no mapa,
+    <i> vértices numerados 1, 2, 3, 4)
+    .
+    Vértices: 4 · Área: <b>24,6 ha
+    Precisão do GPS: ±4 m
+    --
+    { [ Tocar no mapa ] | [ Minha posição ] | [ Digitar ] }
+    .
+    { [ Desfazer ] | . | [   Concluir   ] }
+    --
+    <i>Lados que se cruzam ficam em vermelho
+    <i>e "Concluir" fica bloqueado.
+  }
+}
+@enduml

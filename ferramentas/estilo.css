@@ -1,0 +1,39 @@
+/* Estilo dos PDFs do AgroManejo (pandoc -> HTML -> Chromium). */
+@page { size: A4; margin: 20mm 18mm 22mm 18mm; }
+
+:root { --verde: #4A6B2A; --verde-claro: #EEF2E6; --borda: #9A9A9A; }
+
+html { font-family: "Liberation Serif", "Times New Roman", serif; font-size: 11.5pt; color: #111; }
+body { margin: 0; line-height: 1.5; }
+
+/* Capa: bloco de título do pandoc */
+#title-block-header { text-align: center; padding-top: 55mm; }
+#title-block-header .title { font-size: 24pt; margin: 0 0 4mm 0; padding-bottom: 4mm; border-bottom: 1px solid var(--verde); }
+#title-block-header .subtitle { font-size: 14pt; font-weight: normal; margin: 6mm 0; }
+#title-block-header .author, #title-block-header .date { font-size: 12pt; margin: 2mm 0; }
+#title-block-header + p { margin-top: 18mm; }
+
+h1 { font-size: 17pt; break-before: page; border-bottom: 1px solid var(--verde); padding-bottom: 2mm; margin: 0 0 6mm 0; }
+h2 { font-size: 13.5pt; margin: 7mm 0 3mm 0; break-after: avoid; }
+h1, h2, h3 { break-after: avoid; }
+p, li { orphans: 3; widows: 3; }
+
+table { border-collapse: collapse; width: 100%; margin: 3mm 0 5mm 0; font-size: 10pt; break-inside: auto; }
+th, td { border: 1px solid var(--borda); padding: 1.6mm 2mm; vertical-align: top; text-align: left; }
+th { background: var(--verde-claro); }
+tr { break-inside: avoid; }
+code { font-family: "DejaVu Sans Mono", monospace; font-size: 9pt; }
+
+/* Diagramas: um por página */
+.diagrama { break-before: page; break-after: page; }
+.diagrama figure { margin: 0; text-align: center; }
+.diagrama figcaption { font-style: italic; font-size: 10.5pt; margin-top: 3mm; }
+.retrato img { max-width: 100%; max-height: 225mm; object-fit: contain; }
+/* Diagramas largos: imagem girada 90°, legenda na horizontal. Área útil: 174 x 255 mm. */
+.girado figure { position: relative; height: 250mm; }
+.girado img {
+  position: absolute; left: 50%; top: calc(50% - 6mm);
+  width: 236mm; height: 172mm; object-fit: contain;
+  transform: translate(-50%, -50%) rotate(-90deg);
+}
+.girado figcaption { position: absolute; bottom: 0; left: 0; right: 0; }

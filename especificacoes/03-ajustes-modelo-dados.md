@@ -17,8 +17,10 @@ Complementa a seção 6 da proposta técnica. Lista as mudanças necessárias no
 ## 2. Regras de integridade (servidor)
 
 - Valores monetários, tempo estimado e área: **nunca negativos**.
-- `tipo` da atividade restrito a: AMOSTRAGEM_MONITORAMENTO, PLANTIO, COLHEITA, ADUBACAO, OUTRA.
-- `avaliacao`: nula, POSITIVA ou NEGATIVA.
+- `tipo` da atividade restrito a: AMOSTRAGEM_MONITORAMENTO, PLANTIO, APLICACAO_DEFENSIVO, ADUBACAO, CORRECAO_SOLO, COLHEITA, MANEJO_PASTAGEM, ROCADA, OUTRA (seção 8).
+- `uso` da unidade restrito a: LAVOURA, PASTAGEM, MATA, OUTRO (seção 8).
+- `avaliacao`: nula, POSITIVA ou NEGATIVA; não nula somente com `situacao_execucao` = CONCLUIDA.
+- `situacao_execucao`: PLANEJADA, EM_ANDAMENTO ou CONCLUIDA; CONCLUIDA exige `data_realizada`.
 - `origem` do vértice: MANUAL, GEOLOCALIZACAO ou MAPA.
 - Par (`unidade_id`, `ordem`) único.
 - Latitude entre −90 e 90; longitude entre −180 e 180.
@@ -75,13 +77,16 @@ Ao aprovar estes ajustes, atualizar na proposta:
   - as operações de sincronização passam a usar esse tipo em vez de `Object`;
 - **Seção 7.4:** referenciar esta especificação e a 01.
 
-## 8. Decisões funcionais que afetam o modelo (pendentes)
+## 8. Decisões funcionais que afetam o modelo (decididas)
 
-São opcionais, mas é melhor decidir **antes** de criar as tabelas, porque mudam colunas e a sincronização.
+Decididas antes da criação das tabelas, porque mudam colunas e a sincronização. Já refletidas na proposta (seções 1.5, 2, 3, 4 e 6 e Figuras 2a, 2b, 5 e 8a).
 
-| Decisão | Mudança no modelo, se aprovada |
-|---|---|
-| Exclusão de unidades e atividades | Coluna `excluido_em` (exclusão lógica), propagada pela sincronização como alteração comum. |
-| Data e situação da atividade | Colunas `data_prevista` e `situacao_execucao` (PLANEJADA, EM_ANDAMENTO, CONCLUIDA). |
-| Valores realizados | Colunas de custo realizado por item e receita realizada, ao lado dos previstos. |
-| Perfis de equipe | Nova entidade de membros da propriedade e regras de acesso por propriedade, não só por produtor. É a mudança de maior impacto. |
+| Decisão | Situação | Mudança no modelo |
+|---|---|---|
+| Exclusão de unidades e atividades | **Aprovada** | Coluna `excluido_em` (exclusão lógica) em UNIDADE_MANEJO e ATIVIDADE, propagada pela sincronização como alteração comum. Quando a exclusão de uma unidade é aceita, a função de envio exclui na mesma transação as atividades ainda ativas da unidade e registra cada uma em REGISTRO_ALTERACAO. Atividade nova ou alterada numa unidade excluída é REJEITADA. Exclusão contra edição feita em outro aparelho é conflito comum (UC10). Sem lixeira nesta versão. |
+| Data e situação da atividade | **Aprovada** | Colunas `data_prevista` (opcional), `situacao_execucao` (PLANEJADA, EM_ANDAMENTO, CONCLUIDA; padrão PLANEJADA) e `data_realizada` (obrigatória quando CONCLUIDA). |
+| Valores realizados | **Aprovada** | Colunas `custo_mao_de_obra_realizado`, `custo_insumos_realizado`, `custo_maquinario_realizado` e `receita_realizada`, opcionais e nunca negativas. O aparelho as pré-preenche com os valores previstos ao concluir. No aparelho, em centavos inteiros, como os previstos. |
+| Uso da unidade e novos tipos de atividade | **Aprovada** | Coluna `uso` em UNIDADE_MANEJO (LAVOURA, PASTAGEM, MATA, OUTRO) e quatro novos valores de `tipo`: APLICACAO_DEFENSIVO, CORRECAO_SOLO, MANEJO_PASTAGEM, ROCADA. Atendem lavoura e pastagem sem novas entidades. |
+| Propriedade | **Aprovada** | Nova tabela PROPRIEDADE (`id`, `produtor_id`, `nome`, `criado_em`) e coluna `propriedade_id` em UNIDADE_MANEJO, com índice. Criada pelo servidor quando a conta é confirmada (uma por produtor nesta versão) e enviada ao aparelho pelo recebimento; o aparelho não a altera. As regras de acesso continuam por `produtor_id`. |
+| Perfis de equipe | **Adiada** (trabalho futuro) | Quando implementada: entidade de membros da propriedade e regras de acesso por propriedade. A tabela PROPRIEDADE já prepara essa mudança. |
+| Rebanho | **Adiada** (trabalho futuro) | Entidades de animais ou lotes, pesagens, sanidade, reprodução e movimentação entre piquetes, ligadas às unidades com uso PASTAGEM. |
