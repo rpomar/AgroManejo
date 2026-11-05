@@ -1,0 +1,44 @@
+@startuml seq-sincronizar
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+autonumber
+title Sincronizar dados (UC09)
+
+control ":ServicoSincronizacao" as S
+database ":RepositorioLocal" as R
+participant ":ClienteBackend" as C
+participant "Back-end Remoto\n(Supabase/PostgreSQL)" as BE
+
+note over S : disparado quando há conexão\n(ver especificação 01)
+S -> R : listarPendencias()
+R --> S : registros PENDENTES
+opt existem pendências
+  S -> C : enviarLote(registros)
+  C -> BE : função de envio (uma transação\npor registro, idempotente)
+  BE --> C : resultados por registro
+  C --> S : ResultadoEnvio[*]
+  loop para cada resultado
+    alt ACEITO
+      S -> R : marcarSincronizado(id, versao)
+    else CONFLITO (alterado em outro aparelho)
+      S -> R : marcarConflito(id)
+      note right of R : versão local preservada\naté a decisão do produtor (UC10)
+    else REJEITADO (validação do servidor)
+      S -> R : marcarRejeitado(id, motivo)
+    end
+  end
+end
+S -> R : obterCursor()
+R --> S : cursor
+loop até não haver mais alterações
+  S -> C : receberAlteracoes(cursor)
+  C -> BE : alterações do produtor após o cursor,\nsó de transações já concluídas
+  BE --> C : página de registros
+  C --> S : registros alterados
+  S -> R : salvarRecebidos(registros)
+  note right of R : registros PENDENTES ou em\nCONFLITO não são sobrescritos
+  S -> R : salvarCursor(maior número recebido)
+end
+@enduml

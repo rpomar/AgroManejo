@@ -1,0 +1,47 @@
+erDiagram
+    PRODUTOR ||--o{ UNIDADE_MANEJO : "possui"
+    UNIDADE_MANEJO ||--|{ VERTICE : "é delimitada por"
+    UNIDADE_MANEJO ||--o{ ATIVIDADE : "recebe"
+
+    PRODUTOR {
+        uuid id PK
+        varchar nome
+        varchar email UK
+        timestamptz criado_em
+    }
+    UNIDADE_MANEJO {
+        uuid id PK
+        uuid produtor_id FK
+        varchar nome
+        numeric area_hectares "calculada pelo servidor"
+        integer versao
+        timestamptz criado_em
+        timestamptz atualizado_em
+    }
+    VERTICE {
+        uuid id PK
+        uuid unidade_id FK
+        uuid produtor_id FK "repetido para regras de acesso"
+        integer ordem
+        numeric latitude "6 casas decimais"
+        numeric longitude "6 casas decimais"
+        varchar origem
+        timestamptz criado_em
+    }
+    ATIVIDADE {
+        uuid id PK
+        uuid unidade_id FK
+        uuid produtor_id FK "repetido para regras de acesso"
+        varchar tipo
+        text descricao
+        numeric tempo_estimado_horas
+        numeric custo_mao_de_obra "2 casas decimais"
+        numeric custo_insumos "2 casas decimais"
+        numeric custo_maquinario "2 casas decimais"
+        numeric receita_esperada "2 casas decimais"
+        varchar avaliacao "nulo, POSITIVA ou NEGATIVA"
+        text observacoes
+        integer versao
+        timestamptz criado_em
+        timestamptz atualizado_em
+    }

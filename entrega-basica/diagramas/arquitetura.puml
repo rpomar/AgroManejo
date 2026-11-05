@@ -1,0 +1,39 @@
+@startuml arquitetura
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam componentStyle rectangle
+skinparam rectangle {
+  BackgroundColor #FBFCF8
+  BorderColor #4A6B2A
+}
+left to right direction
+
+node "Celular Android" {
+  rectangle "Aplicativo AgroManejo\n(React Native + Expo + TypeScript)" as APP {
+    rectangle "Telas\n(mapa, unidades, atividades)" as UI
+    rectangle "Serviços\n(localização, cálculo geográfico,\nmapa offline, sincronização)" as SRV
+    database "SQLite\n(dados da propriedade)" as DB
+    database "Pacotes de mapa\n(MapLibre, região da propriedade)" as PK
+  }
+  rectangle "GPS do aparelho" as GPS
+}
+
+cloud "Internet (quando disponível)" {
+  rectangle "Supabase" as SUP {
+    rectangle "Autenticação" as AUTH
+    rectangle "API REST" as API
+    database "PostgreSQL" as PG
+  }
+  rectangle "Provedor de Mapas\n(imagens de fundo)" as MAP
+}
+
+UI --> SRV
+SRV --> DB
+SRV --> PK
+SRV --> GPS
+SRV ..> MAP : download da região
+SRV ..> AUTH : login
+SRV ..> API : sincronização (HTTPS)
+API --> PG
+@enduml

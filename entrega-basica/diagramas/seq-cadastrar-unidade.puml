@@ -1,0 +1,49 @@
+@startuml seq-cadastrar-unidade
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+autonumber
+title Cadastrar unidade de manejo (UC02 + UC03)
+
+actor Produtor
+boundary ":TelaUnidade" as T
+control ":ServicoLocalizacao" as L
+participant "Sistema de\nGeolocalização" as GPS
+control ":CalculadoraGeografica" as C
+database ":RepositorioLocal" as R
+control ":ServicoSincronizacao" as S
+control ":ServicoMapaOffline" as MO
+
+Produtor -> T : iniciar cadastro (nome)
+loop para cada vértice (no mínimo 3)
+  alt digitar coordenada (UC03a)
+    Produtor -> T : informar latitude e longitude
+  else obter por geolocalização (UC03b)
+    Produtor -> T : solicitar posição atual
+    T -> L : obterPosicaoAtual()
+    L -> GPS : ler posição (sob demanda)
+    GPS --> L : latitude, longitude
+    L --> T : vértice
+  else marcar no mapa (UC03c)
+    Produtor -> T : tocar ponto no mapa
+    T -> T : converter ponto em coordenada
+  end
+  T -> T : adicionar vértice ao contorno
+end
+Produtor -> T : concluir delimitação
+T -> C : validarPoligono(vertices)
+alt polígono inválido
+  C --> T : falso
+  T --> Produtor : informar problema e permitir correção
+else polígono válido
+  C --> T : verdadeiro
+  T -> C : calcularAreaHectares(vertices)
+  C --> T : área
+  T -> R : salvarUnidade(unidade) [situação = PENDENTE]
+  R --> T : ok
+  T --> Produtor : exibir polígono e área no mapa
+  T ->> S : sincronizar() (se houver conectividade)
+  T ->> MO : baixarRegiao([unidade])\n(se a região ainda não estiver no aparelho)
+end
+@enduml
