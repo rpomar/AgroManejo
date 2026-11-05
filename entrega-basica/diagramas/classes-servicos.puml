@@ -1,0 +1,114 @@
+@startuml classes-servicos
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor #FBFCF8
+  BorderColor #4A6B2A
+}
+hide empty members
+skinparam nodesep 25
+skinparam ranksep 35
+skinparam packagePadding 4
+title Figura 2b — Visão de interface e serviços
+
+package "Interface" {
+  class TelaAcesso <<boundary>> {
+    +entrar(email: String, senha: String)
+  }
+  class TelaUnidade <<boundary>> {
+    +exibirMapa(unidade: UnidadeManejo)
+    +exibirErro(mensagem: String)
+    +exibirConflito(local: RegistroSincronizavel,\n  servidor: RegistroSincronizavel)
+  }
+  class TelaAtividade <<boundary>> {
+    +exibirAtividades(unidade: UnidadeManejo)
+    +exibirConflito(local: RegistroSincronizavel,\n  servidor: RegistroSincronizavel)
+  }
+}
+
+package "Serviços" {
+  class ServicoLocalizacao {
+    +obterPosicaoAtual(): Vertice
+    +acompanharPosicao()
+    +pararAcompanhamento()
+  }
+  class ServicoMapaOffline {
+    +baixarRegiao(unidades: UnidadeManejo[*])
+    +carregarMapaBase(unidade: UnidadeManejo): PacoteMapa [0..1]
+    +regiaoDisponivel(unidade: UnidadeManejo): Boolean
+  }
+  class CalculadoraGeografica {
+    +validarPoligono(vertices: Vertice[*]): Boolean
+    +calcularAreaHectares(vertices: Vertice[*]): Decimal
+  }
+  class ServicoSincronizacao {
+    +sincronizar()
+    +obterVersaoServidor(id: UUID): RegistroSincronizavel
+    +resolverConflito(id: UUID, manterLocal: Boolean,\n  versaoExibida: Integer)
+  }
+  class RepositorioLocal <<SQLite>> {
+    +salvarUnidade(u: UnidadeManejo)
+    +salvarAtividade(a: Atividade)
+    +listarUnidades(p: Produtor): UnidadeManejo[*]
+    +listarAtividades(u: UnidadeManejo): Atividade[*]
+    +listarPendencias(): RegistroSincronizavel[*]
+    +marcarSincronizado(id: UUID, versao: Integer)
+    +marcarConflito(id: UUID)
+    +marcarRejeitado(id: UUID, motivo: String)
+    +salvarRecebidos(registros: RegistroSincronizavel[*])
+    +aplicarVersaoServidor(r: RegistroSincronizavel)
+    +obterCursor(): Integer
+    +salvarCursor(cursor: Integer)
+  }
+  class ClienteBackend <<Supabase>> {
+    +autenticar(email: String, senha: String): Produtor
+    +enviarLote(registros: RegistroSincronizavel[*]):\n  ResultadoEnvio[*]
+    +receberAlteracoes(cursor: Integer): RegistroSincronizavel[*]
+    +buscarRegistro(id: UUID): RegistroSincronizavel
+  }
+  class ResultadoEnvio <<datatype>> {
+    +id: UUID
+    +resultado: String
+    +versaoNova: Integer [0..1]
+    +motivo: String [0..1]
+  }
+  class PacoteMapa <<SQLite>> {
+    +id: UUID
+    +limites: Decimal[4]
+    +zoomMinimo: Integer
+    +zoomMaximo: Integer
+    +tamanhoBytes: Integer
+    +baixadoEm: DataHora
+  }
+}
+
+package "Domínio (detalhado na Figura 2a)" {
+  interface RegistroSincronizavel
+  class UnidadeManejo
+  class Atividade
+}
+
+TelaAcesso ..> ClienteBackend
+TelaAcesso ..> ServicoMapaOffline
+TelaUnidade ..> ServicoLocalizacao
+TelaUnidade ..> CalculadoraGeografica
+TelaUnidade ..> ServicoMapaOffline
+TelaUnidade ..> RepositorioLocal
+TelaUnidade ..> ServicoSincronizacao
+TelaUnidade ..> UnidadeManejo
+TelaAtividade ..> RepositorioLocal
+TelaAtividade ..> ServicoSincronizacao
+TelaAtividade ..> Atividade
+ServicoSincronizacao ..> RepositorioLocal
+ServicoSincronizacao ..> ClienteBackend
+ClienteBackend ..> ResultadoEnvio
+ServicoMapaOffline ..> PacoteMapa
+
+ServicoLocalizacao -[hidden]down- CalculadoraGeografica
+ServicoMapaOffline -[hidden]down- PacoteMapa
+CalculadoraGeografica -[hidden]down- UnidadeManejo
+PacoteMapa -[hidden]down- Atividade
+ResultadoEnvio -[hidden]down- RegistroSincronizavel
+@enduml

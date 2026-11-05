@@ -1,0 +1,26 @@
+erDiagram
+    PRODUTOR ||--o{ REGISTRO_ALTERACAO : "tem alterações"
+    PRODUTOR ||--o{ OPERACAO_PROCESSADA : "envia"
+
+    PRODUTOR {
+        uuid id PK "detalhado na Figura 8a"
+    }
+    REGISTRO_ALTERACAO {
+        bigint numero PK "sequencial"
+        uuid produtor_id FK
+        varchar tipo_registro
+        uuid registro_id
+        integer versao
+        xid8 transacao_id
+        timestamptz criado_em
+    }
+    OPERACAO_PROCESSADA {
+        uuid id_operacao PK
+        uuid produtor_id FK
+        varchar resultado
+        timestamptz processada_em
+    }
+    CONFIGURACAO_APP {
+        varchar chave PK
+        varchar valor "ex.: versão mínima do aplicativo"
+    }

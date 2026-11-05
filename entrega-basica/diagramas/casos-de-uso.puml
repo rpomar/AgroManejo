@@ -1,0 +1,62 @@
+@startuml casos-de-uso
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam usecase {
+  BackgroundColor #F4F8EE
+  BorderColor #4A6B2A
+}
+skinparam actorBorderColor #333333
+left to right direction
+
+actor "Produtor" as P
+
+rectangle "AgroManejo (aplicativo Android)" {
+  usecase "UC02 Cadastrar unidade\nde manejo" as UC02
+  usecase "UC05 Editar coordenadas\nda unidade" as UC05
+  usecase "UC03 Informar vértice" as UC03
+  usecase "UC03a Digitar\ncoordenada" as UC03a
+  usecase "UC03b Obter coordenada\npor geolocalização" as UC03b
+  usecase "UC03c Marcar ponto\nno mapa" as UC03c
+  usecase "UC04 Consultar unidade\nno mapa" as UC04
+  usecase "UC06 Registrar atividade" as UC06
+  usecase "UC07 Avaliar atividade" as UC07
+  usecase "UC08 Editar atividade" as UC08
+  usecase "UC01 Acessar o aplicativo" as UC01
+  usecase "UC09 Sincronizar dados\n(automático)" as UC09
+  usecase "UC10 Resolver conflito\nde sincronização" as UC10
+  usecase "UC11 Manter mapa offline\nda propriedade (automático)" as UC11
+}
+
+actor "Sistema de\nGeolocalização" as GPS
+actor "Provedor\nde Mapas" as MAP
+actor "Back-end\nRemoto" as BE
+
+P --> UC01
+P --> UC02
+P --> UC05
+P --> UC04
+P --> UC06
+P --> UC07
+P --> UC08
+
+UC02 ..> UC03 : <<include>>
+UC05 ..> UC03 : <<include>>
+UC03 <|-- UC03a
+UC03 <|-- UC03b
+UC03 <|-- UC03c
+
+UC03b --> GPS
+UC03c --> MAP
+UC04 --> MAP
+UC01 --> BE
+UC09 --> BE
+UC10 --> BE
+UC01 ..> UC11 : <<include>>
+UC02 ..> UC11 : <<include>>
+UC05 ..> UC11 : <<include>>
+UC11 --> MAP
+P --> UC10
+UC10 .> UC09 : <<extend>>
+UC07 .> UC06 : <<extend>>
+@enduml

@@ -1,0 +1,53 @@
+@startuml seq-resolver-conflito
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+autonumber
+title Resolver conflito de sincronização (UC10)
+
+actor Produtor
+boundary ":TelaUnidade" as T
+control ":ServicoSincronizacao" as S
+database ":RepositorioLocal" as R
+participant ":ClienteBackend" as C
+participant "Back-end\nRemoto" as BE
+skinparam maxMessageSize 150
+skinparam ParticipantPadding 4
+
+note over Produtor, T : também para atividades\n(:TelaAtividade). Requer conexão.
+Produtor -> T : abrir registro\nem CONFLITO
+T -> S : obterVersaoServidor(id)
+S -> C : buscarRegistro(id)
+C -> BE : consultar registro
+BE --> C : registro (versão vS)
+C --> S : registro (vS)
+S --> T : versão do servidor
+T --> Produtor : exibirConflito(\nlocal, servidor)
+Produtor -> T : escolher a versão a manter
+T -> S : resolverConflito(id,\nmanterLocal, versaoExibida = vS)
+S -> C : buscarRegistro(id)
+C --> S : registro (versão atual vA)
+alt vA diferente de vS (servidor mudou)
+  S -> R : marcarConflito(id)
+  S --> T : novo conflito
+  T --> Produtor : exibirConflito(\nlocal, servidor)
+else vA igual a vS e manterLocal
+  S -> C : enviarLote([registro local com\nversão de origem vS])
+  C -> BE : gravar se\nversão = vS
+  alt versão ainda é vS
+    BE --> C : aceito (nova versão)
+    C --> S : aceito
+    S -> R : marcarSincronizado(id, versao)
+    S --> T : conflito resolvido
+  else alterado após a verificação
+    BE --> C : conflito\n(nada sobrescrito)
+    C --> S : conflito
+    S -> R : marcarConflito(id)
+    S --> T : novo conflito
+  end
+else vA igual a vS e adotar versão do servidor
+  S -> R : aplicarVersaoServidor(registro)
+  S --> T : conflito resolvido
+end
+@enduml

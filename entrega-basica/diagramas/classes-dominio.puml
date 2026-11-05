@@ -1,0 +1,91 @@
+@startuml classes-dominio
+skinparam dpi 150
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor #FBFCF8
+  BorderColor #4A6B2A
+}
+hide empty members
+title Figura 2a — Visão de domínio
+
+package "Domínio" {
+  interface RegistroSincronizavel {
+    +id: UUID
+    +versao: Integer
+    +versaoBase: Integer [0..1]
+    +situacao: SituacaoSincronizacao
+    +idOperacaoPendente: UUID [0..1]
+    +motivoRejeicao: String [0..1]
+  }
+
+  class Produtor {
+    -id: UUID
+    -nome: String
+    -email: String
+  }
+
+  class UnidadeManejo {
+    -nome: String
+    -/areaHectares: Decimal
+    +adicionarVertice(v: Vertice)
+    +alterarVertice(ordem: Integer, v: Vertice)
+    +removerVertice(ordem: Integer)
+  }
+
+  class Vertice {
+    -ordem: Integer
+    -latitude: Decimal
+    -longitude: Decimal
+    -origem: OrigemCoordenada
+  }
+
+  class Atividade {
+    -tipo: TipoAtividade
+    -descricao: String
+    -tempoEstimadoHoras: Decimal
+    -custoMaoDeObra: Decimal
+    -custoInsumos: Decimal
+    -custoMaquinario: Decimal
+    -/custoOperacional: Decimal
+    -receitaEsperada: Decimal
+    -avaliacao: TipoAvaliacao [0..1]
+    -observacoes: String [0..1]
+    +avaliar(tipo: TipoAvaliacao, observacoes: String)
+  }
+
+  enum OrigemCoordenada {
+    MANUAL
+    GEOLOCALIZACAO
+    MAPA
+  }
+  enum TipoAtividade {
+    AMOSTRAGEM_MONITORAMENTO
+    PLANTIO
+    COLHEITA
+    ADUBACAO
+    OUTRA
+  }
+  enum TipoAvaliacao {
+    POSITIVA
+    NEGATIVA
+  }
+  enum SituacaoSincronizacao {
+    PENDENTE
+    SINCRONIZADO
+    CONFLITO
+    REJEITADO
+  }
+}
+
+Produtor "1" -- "0..*" UnidadeManejo : possui >
+UnidadeManejo "1" *-- "3..* {ordered}" Vertice : contorno
+UnidadeManejo "1" *-- "0..*" Atividade : registra >
+RegistroSincronizavel <|.. UnidadeManejo
+RegistroSincronizavel <|.. Atividade
+RegistroSincronizavel ..> SituacaoSincronizacao
+Vertice ..> OrigemCoordenada
+Atividade ..> TipoAvaliacao
+Atividade ..> TipoAtividade
+@enduml
