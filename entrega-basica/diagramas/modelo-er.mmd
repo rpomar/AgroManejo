@@ -1,5 +1,7 @@
 erDiagram
-    PRODUTOR ||--o{ UNIDADE_MANEJO : "possui"
+    direction LR
+    PRODUTOR ||--o{ PROPRIEDADE : "possui"
+    PROPRIEDADE ||--o{ UNIDADE_MANEJO : "contém"
     UNIDADE_MANEJO ||--|{ VERTICE : "é delimitada por"
     UNIDADE_MANEJO ||--o{ ATIVIDADE : "recebe"
 
@@ -9,14 +11,23 @@ erDiagram
         varchar email UK
         timestamptz criado_em
     }
-    UNIDADE_MANEJO {
+    PROPRIEDADE {
         uuid id PK
         uuid produtor_id FK
         varchar nome
+        timestamptz criado_em
+    }
+    UNIDADE_MANEJO {
+        uuid id PK
+        uuid propriedade_id FK
+        uuid produtor_id FK "repetido para regras de acesso"
+        varchar nome
+        varchar uso "LAVOURA, PASTAGEM, MATA ou OUTRO"
         numeric area_hectares "calculada pelo servidor"
         integer versao
         timestamptz criado_em
         timestamptz atualizado_em
+        timestamptz excluido_em "exclusão lógica"
     }
     VERTICE {
         uuid id PK
@@ -34,14 +45,22 @@ erDiagram
         uuid produtor_id FK "repetido para regras de acesso"
         varchar tipo
         text descricao
+        date data_prevista
         numeric tempo_estimado_horas
         numeric custo_mao_de_obra "2 casas decimais"
         numeric custo_insumos "2 casas decimais"
         numeric custo_maquinario "2 casas decimais"
         numeric receita_esperada "2 casas decimais"
+        varchar situacao_execucao "PLANEJADA, EM_ANDAMENTO ou CONCLUIDA"
+        date data_realizada "obrigatória se CONCLUIDA"
+        numeric custo_mao_de_obra_realizado
+        numeric custo_insumos_realizado
+        numeric custo_maquinario_realizado
+        numeric receita_realizada
         varchar avaliacao "nulo, POSITIVA ou NEGATIVA"
         text observacoes
         integer versao
         timestamptz criado_em
         timestamptz atualizado_em
+        timestamptz excluido_em "exclusão lógica"
     }

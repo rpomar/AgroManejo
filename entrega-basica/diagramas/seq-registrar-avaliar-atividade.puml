@@ -4,7 +4,7 @@ skinparam defaultFontName Arial
 skinparam shadowing false
 skinparam sequenceMessageAlign center
 autonumber
-title Registrar e avaliar atividade (UC06, UC07)
+title Planejar, executar e avaliar atividade (UC06, UC08, UC07)
 
 actor Produtor
 boundary ":TelaAtividade" as T
@@ -12,20 +12,34 @@ entity ":Atividade" as A
 database ":RepositorioLocal" as R
 control ":ServicoSincronizacao" as S
 
-== Registrar atividade (UC06) ==
-Produtor -> T : informar tipo, descrição e tempo estimado
+== Planejar atividade (UC06) ==
+Produtor -> T : informar tipo, descrição,\ndata prevista e tempo estimado
 Produtor -> T : informar custos: mão de obra,\ninsumos e maquinário
 Produtor -> T : informar receita esperada
 T -> T : validar campos e calcular\ncusto operacional total
-T -> A ** : criar(dados, unidade)
+T -> A ** : criar(dados, unidade)\n[situacaoExecucao = PLANEJADA]
 T -> R : salvarAtividade(atividade) [situação = PENDENTE]
 R --> T : ok
 T --> Produtor : confirmar registro
 T ->> S : sincronizar() (se houver conectividade)
 
+== Registrar execução (UC08) ==
+Produtor -> T : escolher "Concluir"
+T --> Produtor : valores realizados pré-preenchidos\ncom os previstos
+Produtor -> T : informar a data realizada e ajustar\ncustos e receita realizados
+alt data realizada informada
+  T -> A : concluir(dataRealizada)
+  T -> R : salvarAtividade(atividade) [situação = PENDENTE]
+  R --> T : ok
+  T --> Produtor : exibir atividade concluída\ne liberar a avaliação
+  T ->> S : sincronizar() (se houver conectividade)
+else data realizada ausente
+  T --> Produtor : destacar o campo; atividade não concluída
+end
+
 == Avaliar atividade (UC07) ==
 Produtor -> T : escolher POSITIVA ou NEGATIVA\ne escrever observações (opcional)
-T -> A : avaliar(tipo, observacoes)
+T -> A : avaliar(tipo, observacoes)\n[exige situacaoExecucao = CONCLUIDA]
 T -> R : salvarAtividade(atividade) [situação = PENDENTE]
 R --> T : ok
 T --> Produtor : exibir avaliação

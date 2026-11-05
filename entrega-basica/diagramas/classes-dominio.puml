@@ -18,6 +18,7 @@ package "Domínio" {
     +situacao: SituacaoSincronizacao
     +idOperacaoPendente: UUID [0..1]
     +motivoRejeicao: String [0..1]
+    +excluidoEm: DataHora [0..1]
   }
 
   class Produtor {
@@ -26,12 +27,19 @@ package "Domínio" {
     -email: String
   }
 
+  class Propriedade {
+    -id: UUID
+    -nome: String
+  }
+
   class UnidadeManejo {
     -nome: String
+    -uso: UsoUnidade
     -/areaHectares: Decimal
     +adicionarVertice(v: Vertice)
     +alterarVertice(ordem: Integer, v: Vertice)
     +removerVertice(ordem: Integer)
+    +excluir()
   }
 
   class Vertice {
@@ -44,17 +52,34 @@ package "Domínio" {
   class Atividade {
     -tipo: TipoAtividade
     -descricao: String
+    -dataPrevista: Data [0..1]
     -tempoEstimadoHoras: Decimal
     -custoMaoDeObra: Decimal
     -custoInsumos: Decimal
     -custoMaquinario: Decimal
     -/custoOperacional: Decimal
     -receitaEsperada: Decimal
+    -situacaoExecucao: SituacaoExecucao
+    -dataRealizada: Data [0..1]
+    -custoMaoDeObraRealizado: Decimal [0..1]
+    -custoInsumosRealizado: Decimal [0..1]
+    -custoMaquinarioRealizado: Decimal [0..1]
+    -/custoOperacionalRealizado: Decimal [0..1]
+    -receitaRealizada: Decimal [0..1]
     -avaliacao: TipoAvaliacao [0..1]
     -observacoes: String [0..1]
+    +iniciar()
+    +concluir(dataRealizada: Data)
     +avaliar(tipo: TipoAvaliacao, observacoes: String)
+    +excluir()
   }
 
+  enum UsoUnidade {
+    LAVOURA
+    PASTAGEM
+    MATA
+    OUTRO
+  }
   enum OrigemCoordenada {
     MANUAL
     GEOLOCALIZACAO
@@ -63,9 +88,18 @@ package "Domínio" {
   enum TipoAtividade {
     AMOSTRAGEM_MONITORAMENTO
     PLANTIO
-    COLHEITA
+    APLICACAO_DEFENSIVO
     ADUBACAO
+    CORRECAO_SOLO
+    COLHEITA
+    MANEJO_PASTAGEM
+    ROCADA
     OUTRA
+  }
+  enum SituacaoExecucao {
+    PLANEJADA
+    EM_ANDAMENTO
+    CONCLUIDA
   }
   enum TipoAvaliacao {
     POSITIVA
@@ -79,13 +113,22 @@ package "Domínio" {
   }
 }
 
-Produtor "1" -- "0..*" UnidadeManejo : possui >
+note bottom of Atividade
+  concluir() exige dataRealizada.
+  avaliar() só é aceita com
+  situacaoExecucao = CONCLUIDA.
+end note
+
+Produtor "1" -- "0..*" Propriedade : possui >
+Propriedade "1" -- "0..*" UnidadeManejo : contém >
 UnidadeManejo "1" *-- "3..* {ordered}" Vertice : contorno
 UnidadeManejo "1" *-- "0..*" Atividade : registra >
 RegistroSincronizavel <|.. UnidadeManejo
 RegistroSincronizavel <|.. Atividade
 RegistroSincronizavel ..> SituacaoSincronizacao
+UnidadeManejo ..> UsoUnidade
 Vertice ..> OrigemCoordenada
 Atividade ..> TipoAvaliacao
 Atividade ..> TipoAtividade
+Atividade ..> SituacaoExecucao
 @enduml

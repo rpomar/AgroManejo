@@ -16,15 +16,27 @@ title Figura 2b — Visão de interface e serviços
 package "Interface" {
   class TelaAcesso <<boundary>> {
     +entrar(email: String, senha: String)
+    +criarConta(nome: String, email: String, senha: String)
+    +recuperarSenha(email: String)
   }
   class TelaUnidade <<boundary>> {
     +exibirMapa(unidade: UnidadeManejo)
     +exibirErro(mensagem: String)
     +exibirConflito(local: RegistroSincronizavel,\n  servidor: RegistroSincronizavel)
+    +excluirUnidade(unidade: UnidadeManejo)
   }
   class TelaAtividade <<boundary>> {
     +exibirAtividades(unidade: UnidadeManejo)
     +exibirConflito(local: RegistroSincronizavel,\n  servidor: RegistroSincronizavel)
+    +excluirAtividade(atividade: Atividade)
+  }
+  class TelaAgenda <<boundary>> {
+    +exibirAgenda(filtro: SituacaoExecucao [0..1])
+  }
+  class TelaMais <<boundary>> {
+    +exibirSincronizacao()
+    +exibirPacotesMapa()
+    +sair()
   }
 }
 
@@ -38,6 +50,7 @@ package "Serviços" {
     +baixarRegiao(unidades: UnidadeManejo[*])
     +carregarMapaBase(unidade: UnidadeManejo): PacoteMapa [0..1]
     +regiaoDisponivel(unidade: UnidadeManejo): Boolean
+    +listarPacotes(): PacoteMapa[*]
   }
   class CalculadoraGeografica {
     +validarPoligono(vertices: Vertice[*]): Boolean
@@ -53,7 +66,11 @@ package "Serviços" {
     +salvarAtividade(a: Atividade)
     +listarUnidades(p: Produtor): UnidadeManejo[*]
     +listarAtividades(u: UnidadeManejo): Atividade[*]
+    +listarAgenda(filtro: SituacaoExecucao [0..1]):\n  Atividade[*]
+    +excluirUnidade(id: UUID)
+    +excluirAtividade(id: UUID)
     +listarPendencias(): RegistroSincronizavel[*]
+    +contarPendencias(): Integer
     +marcarSincronizado(id: UUID, versao: Integer)
     +marcarConflito(id: UUID)
     +marcarRejeitado(id: UUID, motivo: String)
@@ -61,9 +78,13 @@ package "Serviços" {
     +aplicarVersaoServidor(r: RegistroSincronizavel)
     +obterCursor(): Integer
     +salvarCursor(cursor: Integer)
+    +apagarDadosLocais()
   }
   class ClienteBackend <<Supabase>> {
     +autenticar(email: String, senha: String): Produtor
+    +criarConta(nome: String, email: String, senha: String)
+    +recuperarSenha(email: String)
+    +encerrarSessao()
     +enviarLote(registros: RegistroSincronizavel[*]):\n  ResultadoEnvio[*]
     +receberAlteracoes(cursor: Integer): RegistroSincronizavel[*]
     +buscarRegistro(id: UUID): RegistroSincronizavel
@@ -101,6 +122,10 @@ TelaUnidade ..> UnidadeManejo
 TelaAtividade ..> RepositorioLocal
 TelaAtividade ..> ServicoSincronizacao
 TelaAtividade ..> Atividade
+TelaAgenda ..> RepositorioLocal
+TelaMais ..> ServicoSincronizacao
+TelaMais ..> ServicoMapaOffline
+TelaMais ..> ClienteBackend
 ServicoSincronizacao ..> RepositorioLocal
 ServicoSincronizacao ..> ClienteBackend
 ClienteBackend ..> ResultadoEnvio

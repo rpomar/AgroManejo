@@ -26,6 +26,9 @@ rectangle "AgroManejo (aplicativo Android)" {
   usecase "UC09 Sincronizar dados\n(automático)" as UC09
   usecase "UC10 Resolver conflito\nde sincronização" as UC10
   usecase "UC11 Manter mapa offline\nda propriedade (automático)" as UC11
+  usecase "UC12 Excluir registro" as UC12
+  usecase "UC13 Criar conta" as UC13
+  usecase "UC14 Recuperar senha" as UC14
 }
 
 actor "Sistema de\nGeolocalização" as GPS
@@ -59,4 +62,10 @@ UC11 --> MAP
 P --> UC10
 UC10 .> UC09 : <<extend>>
 UC07 .> UC06 : <<extend>>
+UC07 .> UC08 : <<extend>>
+P --> UC12
+P --> UC13
+P --> UC14
+UC13 --> BE
+UC14 --> BE
 @enduml
