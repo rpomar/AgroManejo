@@ -60,6 +60,7 @@ salt
     <b>Mais › Sincronização
     ==
     Último envio: hoje, 14:32
+    [ Sincronizar agora ]
     --
     <b>Conflitos (1)
     { [ Talhão Norte · alterado em outro aparelho ] }
@@ -79,8 +80,7 @@ salt
     }
     { [ Manter a minha ] | [ Usar a do servidor ] }
     --
-    <i>Também em Mais: Pacotes de mapa
-    <i>(região, espaço ocupado) e Conta (sair).
+    <i>Também em Mais: Conta (sair).
     {/ Mapa | Atividades | <b>Mais }
   }
 }

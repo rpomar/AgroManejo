@@ -10,30 +10,32 @@ skinparam rectangle {
 left to right direction
 
 node "Celular Android" {
-  rectangle "Aplicativo AgroManejo\n(React Native + Expo + TypeScript)" as APP {
-    rectangle "Telas\n(mapa, unidades, atividades)" as UI
-    rectangle "Serviços\n(localização, cálculo geográfico,\nmapa offline, sincronização)" as SRV
-    database "SQLite\n(dados da propriedade)" as DB
-    database "Pacotes de mapa\n(MapLibre, região da propriedade)" as PK
+  rectangle "Aplicativo AgroManejo\n(MIT App Inventor, componentes nativos)" as APP {
+    rectangle "Telas e abas\n(Screen, arranjos, Map, Polygon, Marker)" as UI
+    rectangle "Procedimentos em blocos\n(cálculo geográfico, regras, sincronização)" as SRV
+    rectangle "Clock\n(sincronização periódica)" as CLK
+    rectangle "Web\n(HTTPS + JSON)" as WEB
+    database "TinyDB\n(dados da propriedade e sessão)" as DB
   }
-  rectangle "GPS do aparelho" as GPS
+  rectangle "GPS do aparelho\n(LocationSensor)" as GPS
 }
 
 cloud "Internet (quando disponível)" {
   rectangle "Supabase" as SUP {
-    rectangle "Autenticação" as AUTH
-    rectangle "API REST" as API
-    database "PostgreSQL" as PG
+    rectangle "Autenticação\n(/auth/v1)" as AUTH
+    rectangle "API REST e funções\n(/rest/v1/rpc)" as API
+    database "PostgreSQL + PostGIS" as PG
   }
-  rectangle "Provedor de Mapas\n(imagens de fundo)" as MAP
+  rectangle "Provedor de Mapas\n(imagens de satélite)" as MAP
 }
 
 UI --> SRV
+CLK --> SRV
 SRV --> DB
-SRV --> PK
 SRV --> GPS
-SRV ..> MAP : download da região
-SRV ..> AUTH : login
-SRV ..> API : sincronização (HTTPS)
+SRV --> WEB
+UI ..> MAP : imagens de fundo\n(componente Map)
+WEB ..> AUTH : login, conta, senha
+WEB ..> API : sincronização
 API --> PG
 @enduml

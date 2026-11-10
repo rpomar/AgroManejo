@@ -13,7 +13,6 @@ participant "Sistema de\nGeolocalização" as GPS
 control ":CalculadoraGeografica" as C
 database ":RepositorioLocal" as R
 control ":ServicoSincronizacao" as S
-control ":ServicoMapaOffline" as MO
 
 Produtor -> T : iniciar cadastro (nome)
 loop para cada vértice (no mínimo 3)
@@ -23,11 +22,11 @@ loop para cada vértice (no mínimo 3)
     Produtor -> T : solicitar posição atual
     T -> L : obterPosicaoAtual()
     L -> GPS : ler posição (sob demanda)
-    GPS --> L : latitude, longitude
-    L --> T : vértice
+    GPS --> L : latitude, longitude, precisão
+    L --> T : vértice e precisão (aviso se > 10 m)
   else marcar no mapa (UC03c)
     Produtor -> T : tocar ponto no mapa
-    T -> T : converter ponto em coordenada
+    T -> T : evento TapAtPoint(latitude, longitude)
   end
   T -> T : adicionar vértice ao contorno
 end
@@ -43,7 +42,6 @@ else polígono válido
   T -> R : salvarUnidade(unidade) [situação = PENDENTE]
   R --> T : ok
   T --> Produtor : exibir polígono e área no mapa
-  T ->> S : sincronizar() (se houver conectividade)
-  T ->> MO : baixarRegiao([unidade])\n(se a região ainda não estiver no aparelho)
+  T ->> S : sincronizar() (tem efeito só se houver conexão)
 end
 @enduml

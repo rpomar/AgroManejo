@@ -9,24 +9,19 @@ title Consultar unidade no mapa (UC04)
 actor Produtor
 boundary ":TelaUnidade" as T
 database ":RepositorioLocal" as R
-control ":ServicoMapaOffline" as MO
 control ":ServicoLocalizacao" as L
 participant "Provedor\nde Mapas" as M
 
 Produtor -> T : abrir o mapa da propriedade
 T -> R : listarUnidades(produtor)
 R --> T : unidades
-T -> MO : carregarMapaBase(unidade)
-alt região já armazenada no aparelho
-  MO --> T : imagem do pacote local
-else região ausente e com conexão
-  MO -> M : baixar região
-  M --> MO : pacote de mapa
-  MO --> T : imagem do pacote baixado
-else região ausente e sem conexão
-  MO --> T : sem imagem (fundo neutro com escala)
+T -> T : desenhar polígonos, nomes e áreas\n(dados locais, com ou sem conexão)
+alt com conexão
+  T -> M : solicitar imagens da região visível\n(componente Map)
+  M --> T : imagens de satélite
+else sem conexão
+  T -> T : manter fundo neutro
 end
-T -> T : desenhar polígonos, nomes e áreas\n(dados locais)
 T -> L : acompanharPosicao()
 L --> T : posição atual (atualizada continuamente)
 Produtor -> T : tocar em uma unidade

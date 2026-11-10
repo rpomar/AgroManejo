@@ -1,24 +1,23 @@
 # PROGRESSO — AgroManejo
 
-Atualizado em: 2026-11-05
+Atualizado em: 2026-11-10
 
 ## Estado
 - Proposta técnica e projeto do software: `entrega-basica/AgroManejo-Entrega-Basica.md` (PDF e DOCX gerados a partir dele por `ferramentas/gerar.sh`), com diagramas em `entrega-basica/diagramas/`.
-- Especificações técnicas para o desenvolvimento: `especificacoes/` (01 sincronização, 02 mapa offline, 03 modelo de dados).
-- Revisão de 05/11 (decisões tomadas em sessão de perguntas e respostas com o autor), aplicada à proposta, às especificações e aos diagramas:
-  - escopo: lavoura e pastagem; rebanho e perfis de equipe como trabalhos futuros;
-  - entidade PROPRIEDADE; uso da unidade; quatro novos tipos de atividade;
-  - planejado e realizado na atividade (data prevista, situação, data e valores realizados); avaliação só após concluir;
-  - exclusão lógica (RF17, UC12); criação de conta e recuperação de senha (UC13, UC14);
-  - navegação em três abas, indicador de sincronização, saída com pendências;
-  - mapa offline: RS inteiro, imagem EOX (uso não comercial);
-  - nova seção 8, Protótipo de telas (Figuras 10a e 10b); Figura 5 com planejar, executar e avaliar; fases 1–6 do protótipo na seção 7.7;
-  - autor preenchido na capa.
+- Especificações técnicas para o desenvolvimento: `especificacoes/` (01 sincronização, 02 mapa, 03 modelo de dados).
+- Revisão de 10/11 — plataforma passa a ser o MIT App Inventor (decisão do autor), só com componentes nativos:
+  - seções 1, 2, 3, 4, 5, 6 e 7 ajustadas; nova tabela de correspondência entre o modelo e o App Inventor (seção 4);
+  - TinyDB no aparelho; Supabase mantido, acessado pelo componente Web;
+  - mapa offline removido: sem conexão, as unidades aparecem sobre fundo neutro (RF16 reescrito; antigo UC11 removido; UC12–UC14 renumerados para UC11–UC13);
+  - sincronização por Clock, só com o aplicativo aberto; ator Temporizador no diagrama de casos de uso;
+  - cálculo de área e validação do polígono descritos para implementação em blocos (seção 2.3);
+  - correções da revisão: UC07 estende só UC08; RNF03, RNF05 e RNF06 com métricas; LGPD citada; arquitetura (Figura 9) atualizada.
+- Revisão de 05/11: escopo lavoura e pastagem, PROPRIEDADE, planejado e realizado, exclusão lógica, conta e senha, três abas, protótipo de telas.
 
 ## Pendências
 - Revisão final do autor antes da entrega de 10/11/2026.
+- Confirmar na fase 1 do protótipo: URL de blocos da EOX no Map (CustomUrl), formato de RequestHeaders do Web, cobertura da imagem Aerial (USGS) no RS.
 - Datas das fases do protótipo (a definir no início da implementação).
-- Produção comercial (se houver): fonte de imagem com uso offline permitido (especificação 02).
 
 ## Observações
 - A geração precisa de PlantUML (com graphviz), mermaid-cli, pandoc e Playwright; ver o cabeçalho de `ferramentas/gerar.sh`.

@@ -35,33 +35,28 @@ package "Interface" {
   }
   class TelaMais <<boundary>> {
     +exibirSincronizacao()
-    +exibirPacotesMapa()
+    +sincronizarAgora()
     +sair()
   }
 }
 
 package "Serviços" {
-  class ServicoLocalizacao {
+  class ServicoLocalizacao <<LocationSensor>> {
     +obterPosicaoAtual(): Vertice
+    +obterPrecisaoMetros(): Decimal
     +acompanharPosicao()
     +pararAcompanhamento()
   }
-  class ServicoMapaOffline {
-    +baixarRegiao(unidades: UnidadeManejo[*])
-    +carregarMapaBase(unidade: UnidadeManejo): PacoteMapa [0..1]
-    +regiaoDisponivel(unidade: UnidadeManejo): Boolean
-    +listarPacotes(): PacoteMapa[*]
-  }
-  class CalculadoraGeografica {
+  class CalculadoraGeografica <<procedimentos>> {
     +validarPoligono(vertices: Vertice[*]): Boolean
     +calcularAreaHectares(vertices: Vertice[*]): Decimal
   }
-  class ServicoSincronizacao {
+  class ServicoSincronizacao <<Clock>> {
     +sincronizar()
     +obterVersaoServidor(id: UUID): RegistroSincronizavel
     +resolverConflito(id: UUID, manterLocal: Boolean,\n  versaoExibida: Integer)
   }
-  class RepositorioLocal <<SQLite>> {
+  class RepositorioLocal <<TinyDB>> {
     +salvarUnidade(u: UnidadeManejo)
     +salvarAtividade(a: Atividade)
     +listarUnidades(p: Produtor): UnidadeManejo[*]
@@ -80,7 +75,7 @@ package "Serviços" {
     +salvarCursor(cursor: Integer)
     +apagarDadosLocais()
   }
-  class ClienteBackend <<Supabase>> {
+  class ClienteBackend <<Web>> {
     +autenticar(email: String, senha: String): Produtor
     +criarConta(nome: String, email: String, senha: String)
     +recuperarSenha(email: String)
@@ -95,14 +90,6 @@ package "Serviços" {
     +versaoNova: Integer [0..1]
     +motivo: String [0..1]
   }
-  class PacoteMapa <<SQLite>> {
-    +id: UUID
-    +limites: Decimal[4]
-    +zoomMinimo: Integer
-    +zoomMaximo: Integer
-    +tamanhoBytes: Integer
-    +baixadoEm: DataHora
-  }
 }
 
 package "Domínio (detalhado na Figura 2a)" {
@@ -112,10 +99,9 @@ package "Domínio (detalhado na Figura 2a)" {
 }
 
 TelaAcesso ..> ClienteBackend
-TelaAcesso ..> ServicoMapaOffline
+TelaAcesso ..> RepositorioLocal
 TelaUnidade ..> ServicoLocalizacao
 TelaUnidade ..> CalculadoraGeografica
-TelaUnidade ..> ServicoMapaOffline
 TelaUnidade ..> RepositorioLocal
 TelaUnidade ..> ServicoSincronizacao
 TelaUnidade ..> UnidadeManejo
@@ -124,16 +110,14 @@ TelaAtividade ..> ServicoSincronizacao
 TelaAtividade ..> Atividade
 TelaAgenda ..> RepositorioLocal
 TelaMais ..> ServicoSincronizacao
-TelaMais ..> ServicoMapaOffline
+TelaMais ..> RepositorioLocal
 TelaMais ..> ClienteBackend
 ServicoSincronizacao ..> RepositorioLocal
 ServicoSincronizacao ..> ClienteBackend
 ClienteBackend ..> ResultadoEnvio
-ServicoMapaOffline ..> PacoteMapa
 
 ServicoLocalizacao -[hidden]down- CalculadoraGeografica
-ServicoMapaOffline -[hidden]down- PacoteMapa
 CalculadoraGeografica -[hidden]down- UnidadeManejo
-PacoteMapa -[hidden]down- Atividade
+RepositorioLocal -[hidden]down- Atividade
 ResultadoEnvio -[hidden]down- RegistroSincronizavel
 @enduml

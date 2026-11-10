@@ -1,6 +1,6 @@
 # Especificação 03 — Ajustes do modelo de dados
 
-Complementa a seção 6 da proposta técnica. Lista as mudanças necessárias no modelo antes da criação das tabelas, para dar suporte à sincronização (especificação 01), ao mapa offline (especificação 02) e à segurança.
+Complementa a seção 6 da proposta técnica. Lista as mudanças necessárias no modelo antes da criação das tabelas, para dar suporte à sincronização (especificação 01) e à segurança, considerando o aplicativo feito no MIT App Inventor, com armazenamento local no TinyDB.
 
 ## 1. Mudanças nas tabelas existentes
 
@@ -11,7 +11,7 @@ Complementa a seção 6 da proposta técnica. Lista as mudanças necessárias no
 | UNIDADE_MANEJO, ATIVIDADE | Manter `versao` e `atualizado_em`, ambos definidos **só** pelo servidor. | Controle de concorrência (especificação 01). |
 | UNIDADE_MANEJO | `area_hectares` passa a ser **recalculada pelo servidor** (PostGIS) a cada gravação aceita. | Define a fonte da verdade da área. O valor do aparelho é provisório até a sincronização. |
 | VERTICE | Sem `versao` própria; os vértices são regravados em bloco com a unidade. | O contorno é um bloco único. |
-| ATIVIDADE | Custos e receita em reais com 2 casas decimais no servidor; **centavos como número inteiro** no aparelho. | O SQLite não tem tipo decimal exato; somas em ponto flutuante geram diferenças de centavos. |
+| ATIVIDADE | Custos e receita em reais com 2 casas decimais no servidor; **centavos como número inteiro** no aparelho. | Os números dos blocos do App Inventor são de ponto flutuante; somas em ponto flutuante geram diferenças de centavos. |
 | VERTICE | Latitude e longitude com 6 casas decimais. | Precisão de cerca de 0,1 m, suficiente para GPS de celular. |
 
 ## 2. Regras de integridade (servidor)
@@ -34,20 +34,34 @@ Complementa a seção 6 da proposta técnica. Lista as mudanças necessárias no
 | OPERACAO_PROCESSADA | identificador da operação, `produtor_id`, resultado, data | Idempotência dos envios. Pode ser limpa após 30 dias. |
 | CONFIGURACAO_APP | versão mínima aceita do aplicativo | Compatibilidade de versões. |
 
-## 4. Novas tabelas no aparelho (somente locais)
+## 4. Armazenamento no aparelho (TinyDB)
 
-| Tabela | Conteúdo | Uso |
+O App Inventor não tem banco relacional nativo. O aparelho usa o componente TinyDB, um armazenamento persistente de pares chave-valor, com um único espaço de nomes (`Namespace` = `agromanejo`). Cada valor é um dicionário ou uma lista, convertidos automaticamente pelo componente.
+
+| Chave | Conteúdo | Uso |
 |---|---|---|
-| META_SINCRONIZACAO | cursor de recebimento, data do último ciclo bem-sucedido | Retomar o recebimento de onde parou. |
-| PACOTE_MAPA | identificador, região (limites), zoom mínimo e máximo, tamanho em bytes, data do download, unidades cobertas | Gestão dos pacotes offline (especificação 02). |
-| REGISTRO_DIAGNOSTICO | data, tipo de evento, código, identificador do registro afetado | Diagnóstico de falhas, sem dados pessoais. |
+| `propriedade` | dicionário da propriedade | Somente leitura no aparelho. |
+| `unidade:<id>` | dicionário da unidade com a lista ordenada de vértices | Registro de trabalho. |
+| `atividade:<id>` | dicionário da atividade | Registro de trabalho. |
+| `indice:unidades` | lista dos identificadores das unidades | Listar sem percorrer todas as chaves. |
+| `indice:atividades:<unidade_id>` | lista dos identificadores das atividades da unidade | Listar as atividades da unidade. |
+| `indice:pendentes` | lista dos identificadores em PENDENTE | Montar o lote de envio sem percorrer tudo. |
+| `meta:sincronizacao` | cursor de recebimento, data do último ciclo bem-sucedido | Retomar o recebimento de onde parou. |
+| `sessao` | token de acesso, token de renovação, validade, id do produtor | Autenticação nas chamadas do componente Web. |
+| `diagnostico` | lista das últimas 100 falhas: data, tipo de evento, código, id do registro | Diagnóstico de falhas, sem dados pessoais. |
 
-Nas tabelas locais UNIDADE_MANEJO e ATIVIDADE, acrescentar:
+Nos dicionários de unidade e atividade, acrescentar:
 
 - `situacao`: SINCRONIZADO, PENDENTE, CONFLITO ou **REJEITADO** (novo estado; ver especificação 01, seção 3);
 - `versao_base`;
 - `id_operacao_pendente`;
 - `motivo_rejeicao`.
+
+Regras de gravação:
+
+- toda gravação de registro atualiza também os índices afetados no mesmo procedimento;
+- ao sair da conta, `ClearAll` apaga todas as chaves do espaço de nomes;
+- durante o desenvolvimento com o AI Companion, os projetos compartilham o mesmo TinyDB; testes de persistência definitivos usam o APK instalado.
 
 ## 5. Índices
 
@@ -76,6 +90,7 @@ Ao aprovar estes ajustes, atualizar na proposta:
   - uma interface comum `RegistroSincronizavel` (`id`, `versao`, `versaoBase`, `situacao`) implementada por `UnidadeManejo` e `Atividade`;
   - as operações de sincronização passam a usar esse tipo em vez de `Object`;
 - **Seção 7.4:** referenciar esta especificação e a 01.
+- **Seção 6:** armazenamento local no TinyDB, sem tabela de pacotes de mapa.
 
 ## 8. Decisões funcionais que afetam o modelo (decididas)
 

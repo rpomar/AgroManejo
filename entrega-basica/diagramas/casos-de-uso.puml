@@ -23,17 +23,17 @@ rectangle "AgroManejo (aplicativo Android)" {
   usecase "UC07 Avaliar atividade" as UC07
   usecase "UC08 Editar atividade" as UC08
   usecase "UC01 Acessar o aplicativo" as UC01
-  usecase "UC09 Sincronizar dados\n(automático)" as UC09
+  usecase "UC09 Sincronizar dados" as UC09
   usecase "UC10 Resolver conflito\nde sincronização" as UC10
-  usecase "UC11 Manter mapa offline\nda propriedade (automático)" as UC11
-  usecase "UC12 Excluir registro" as UC12
-  usecase "UC13 Criar conta" as UC13
-  usecase "UC14 Recuperar senha" as UC14
+  usecase "UC11 Excluir registro" as UC11
+  usecase "UC12 Criar conta" as UC12
+  usecase "UC13 Recuperar senha" as UC13
 }
 
 actor "Sistema de\nGeolocalização" as GPS
 actor "Provedor\nde Mapas" as MAP
 actor "Back-end\nRemoto" as BE
+actor "Temporizador\n(Clock)" as TMP
 
 P --> UC01
 P --> UC02
@@ -50,22 +50,18 @@ UC03 <|-- UC03b
 UC03 <|-- UC03c
 
 UC03b --> GPS
-UC03c --> MAP
 UC04 --> MAP
 UC01 --> BE
 UC09 --> BE
 UC10 --> BE
-UC01 ..> UC11 : <<include>>
-UC02 ..> UC11 : <<include>>
-UC05 ..> UC11 : <<include>>
-UC11 --> MAP
 P --> UC10
+P --> UC09
+TMP --> UC09
 UC10 .> UC09 : <<extend>>
-UC07 .> UC06 : <<extend>>
 UC07 .> UC08 : <<extend>>
+P --> UC11
 P --> UC12
 P --> UC13
-P --> UC14
+UC12 --> BE
 UC13 --> BE
-UC14 --> BE
 @enduml

@@ -1,10 +1,10 @@
 # Especificação 01 — Protocolo de sincronização
 
-Complementa a seção 7.4 da proposta técnica (`entrega-basica/AgroManejo-Entrega-Basica.md`). Define o comportamento necessário para implementar a sincronização entre o SQLite do aparelho e o PostgreSQL (Supabase) sem perda nem duplicação de dados.
+Complementa a seção 7.4 da proposta técnica (`entrega-basica/AgroManejo-Entrega-Basica.md`). Define o comportamento necessário para implementar a sincronização entre o TinyDB do aparelho e o PostgreSQL (Supabase) sem perda nem duplicação de dados. O aplicativo é feito no MIT App Inventor, apenas com componentes nativos: o acesso ao servidor usa o componente Web, e os disparos usam o componente Clock.
 
 ## 1. Princípios
 
-1. **O aparelho é a fonte de trabalho; o servidor é a fonte de verdade compartilhada.** O produtor lê e grava sempre no SQLite. O servidor decide se uma alteração é aceita.
+1. **O aparelho é a fonte de trabalho; o servidor é a fonte de verdade compartilhada.** O produtor lê e grava sempre no TinyDB. O servidor decide se uma alteração é aceita.
 2. **O relógio do aparelho nunca decide nada.** Ordem, versão e cursor vêm do servidor.
 3. **Toda operação pode ser repetida sem efeito colateral** (idempotência).
 4. **Nenhuma alteração é sobrescrita sem que o produtor a tenha visto.**
@@ -37,14 +37,17 @@ O bloqueio de edição em CONFLITO evita conflitos sobre conflitos, que o produt
 
 ## 4. Ciclo de sincronização
 
-**Gatilhos:**
+**Gatilhos** (só com o aplicativo aberto, porque os componentes nativos do App Inventor não executam em segundo plano):
 
-- conexão restabelecida;
-- aplicativo trazido para o primeiro plano;
-- 5 segundos após a última gravação local, com conexão;
-- fim do login.
+- abertura do aplicativo (evento Initialize da tela principal);
+- 5 segundos após a última gravação local (Clock de disparo único);
+- a cada 60 segundos, enquanto houver registros PENDENTE (Clock periódico);
+- fim do login;
+- botão "Sincronizar agora", em Mais → Sincronização.
 
-Só um ciclo roda por vez; um gatilho durante um ciclo agenda o próximo.
+O App Inventor não tem componente nativo que informe a volta da conexão. A tentativa de envio serve como teste: se falhar por rede, o ciclo termina e a próxima tentativa segue a seção 8. Sem pendências, o Clock periódico fica desligado.
+
+Só um ciclo roda por vez, controlado por uma variável global; um gatilho durante um ciclo agenda o próximo.
 
 **Ordem:**
 
@@ -57,7 +60,7 @@ O envio vem antes do recebimento para que o conflito seja detectado pelo servido
 
 ## 5. Envio de alterações
 
-O aplicativo chama **uma função do banco** (RPC do Supabase), não as tabelas diretamente. Uma função do PostgreSQL executa dentro de uma transação, então a gravação da unidade com todos os vértices é atômica.
+O aplicativo chama **uma função do banco** (RPC do Supabase), não as tabelas diretamente. No App Inventor, isso é um `PostText` do componente Web para `https://<projeto>.supabase.co/rest/v1/rpc/enviar_alteracoes`, com o lote em JSON (montado com `JsonObjectEncode`) e os cabeçalhos `apikey`, `Authorization: Bearer <token>` e `Content-Type: application/json`, definidos em `RequestHeaders`. A resposta chega no evento `GotText` e é lida com `JsonTextDecodeWithDictionaries`. Uma função do PostgreSQL executa dentro de uma transação, então a gravação da unidade com todos os vértices é atômica.
 
 **Conteúdo do lote**, para cada registro:
 
@@ -101,7 +104,7 @@ Se a resposta se perder (queda de conexão), o reenvio com o mesmo identificador
 
 **Problema a evitar:** um contador simples pode pular registros. Uma transação que começou antes pode terminar depois e ganhar um número menor que um cursor já lido.
 
-**Mecanismo:**
+**Mecanismo** (função `receber_alteracoes`, chamada da mesma forma pelo componente Web):
 
 - O servidor mantém um **registro de alterações**: cada gravação aceita gera uma linha com número sequencial, produtor, tipo, identificador do registro, nova versão e o **identificador da transação** que a gravou.
 - O recebimento devolve apenas as alterações:
@@ -136,7 +139,7 @@ Mantém a regra já aprovada:
 
 | Situação | Comportamento |
 |---|---|
-| Sem conexão ou tempo esgotado | Nova tentativa automática com intervalos crescentes: 5 s, 15 s, 45 s, 2 min, até no máximo 10 min entre tentativas. |
+| Sem conexão ou tempo esgotado (evento `TimedOut` do Web ou erro de rede) | Nova tentativa automática, controlada pelo Clock, com intervalos crescentes: 5 s, 15 s, 45 s, 2 min, até no máximo 10 min entre tentativas. |
 | Sessão vencida | Renovar a sessão e repetir. Se a renovação falhar, pedir novo login **sem apagar** pendências. |
 | Acesso negado (regra de acesso por linha) | Registro REJEITADO e erro registrado para diagnóstico. Indica defeito, não uso normal. |
 | Versão do aplicativo incompatível | Interromper a sincronização e pedir atualização do aplicativo. Os dados locais continuam utilizáveis offline. |
@@ -160,4 +163,6 @@ Nenhum dado pessoal ou financeiro vai nesse registro, só identificadores e cód
 ## 11. Pontos a confirmar na implementação
 
 - Comportamento transacional exato das chamadas RPC via API do Supabase (PostgREST). A página de documentação correspondente não pôde ser consultada nesta revisão.
+- Formato exato da lista de cabeçalhos em `RequestHeaders` do componente Web e tratamento dos códigos de resposta HTTP no evento `GotText`, a confirmar no primeiro teste do protótipo (fase 1).
+- Tempo de processamento dos lotes em blocos no aparelho: se 100 registros por lote ficarem lentos, reduzir o tamanho do lote.
 - Tamanhos de lote e intervalos (100 / 500 / 5 s): valores iniciais, a ajustar com medições no protótipo.
